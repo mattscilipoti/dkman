@@ -9,8 +9,8 @@ FROM base AS prep-build
 WORKDIR /go/src
 ENV CGO_ENABLED=0
 COPY go.* .
-# RUN --mount=type=cache,target=/go/pkg/mod \
-#     go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 FROM prep-build AS build
 ARG TARGETOS

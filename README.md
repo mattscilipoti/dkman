@@ -33,5 +33,6 @@ Another option:
 
 ## References
 
-- https://www.docker.com/blog/containerize-your-go-developer-environment-part-1/
+- Docker & Go: https://www.docker.com/blog/containerize-your-go-developer-environment-part-1/
   - https://github.com/chris-crone/containerized-go-dev
+- GUI (tview): https://github.com/rivo/tview
