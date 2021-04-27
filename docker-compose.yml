@@ -1,0 +1,10 @@
+services:
+    # build the image and start in a bash shell
+    #  To have ssh and git support, use `bin/shell`
+    shell:
+        build: 
+          context: .
+          target: dev
+        command: /bin/bash # starts shell, overriding default CMD
+        volumes:
+            - .:/go/src # working dir, shared with host. This *must* match WORKDIR from Dockerfile

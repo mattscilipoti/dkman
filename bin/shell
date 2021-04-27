@@ -1,0 +1,2 @@
+ docker compose build shell
+ docker compose run --rm shell
