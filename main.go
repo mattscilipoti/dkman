@@ -1,18 +1,23 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/TwinProduction/go-color"
 	"github.com/manifoldco/promptui"
-	"io"
 	"os"
 	"path/filepath"
 )
 
+// Embed template files in executable
+// WORAROUND: embed "templates/*" ignores _* files
+//go:embed templates/* templates/home/_shell_colors.sh templates/home/_shell_prompt.sh
+var templateFiles embed.FS
+
 func main() {
+	// Loop. After the user slects an action, re-display the menu
 	for {
 		displayMenu()
-		// displayMessage("Welcome")
 	}
 }
 
@@ -126,14 +131,14 @@ func generate_files_for_shell_prompt() {
 	currentDir, err := os.Getwd()
 	check(err)
 	destinationDir := filepath.Join(currentDir, "docker", "home")
-	displayMessage(messageItem{ message: "Generating files in '" + destinationDir + "..." })
+	displayMessage(messageItem{message: "Generating files in '" + destinationDir + "..."})
 	// mkdir, including missing dirs along path
 	os.RemoveAll(destinationDir)
 	os.MkdirAll(destinationDir, os.ModePerm)
 
 	promptFiles := []string{"profile", "_shell_prompt.sh", "_shell_colors.sh", "git-prompt.sh"}
 	for _, sourceFile := range promptFiles {
-		copyFile(filepath.Join(templateDir, sourceFile), filepath.Join(destinationDir, sourceFile))
+		copyEmbeddedFile(filepath.Join(templateDir, sourceFile), filepath.Join(destinationDir, sourceFile))
 	}
 
 	displayMessages(
@@ -144,23 +149,42 @@ func generate_files_for_shell_prompt() {
 	)
 }
 
-// Copy source file to Destination
-// Derived from https://stackoverflow.com/a/35353594
-func copyFile(sourceFileNameAndPath string, DestinationFileNameAndPath string) {
-	srcFile, err := os.Open(sourceFileNameAndPath)
+// Copies contents of "embedded file" to OS file
+// derived from: https://golang.org/pkg/embed/
+func copyEmbeddedFile(embeddedFileName string, destinationFileNameAndPath string) {
+	embeddedFileContentsAsBase64, err := templateFiles.ReadFile(embeddedFileName)
 	check(err)
-	defer srcFile.Close()
+	embeddedFileContents := string(embeddedFileContentsAsBase64)
+	_, err = createFile(embeddedFileContents, destinationFileNameAndPath)
+	check(err)
+}
 
-	destFile, err := os.Create(DestinationFileNameAndPath) // creates if file doesn't exist
+// Returns count_of_bytes_written, err
+func createFile(contents string, destinationFileNameAndPath string) (int, error) {
+	destFile, err := os.Create(destinationFileNameAndPath) // creates if file doesn't exist
 	check(err)
 	defer destFile.Close()
 
-	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
-	check(err)
-
-	err = destFile.Sync()
-	check(err)
+	return destFile.WriteString(contents)
 }
+
+// // Copy source file to Destination
+// // Derived from https://stackoverflow.com/a/35353594
+// func copyFile(sourceFileNameAndPath string, DestinationFileNameAndPath string) {
+// 	srcFile, err := os.Open(sourceFileNameAndPath)
+// 	check(err)
+// 	defer srcFile.Close()
+
+// 	destFile, err := os.Create(DestinationFileNameAndPath) // creates if file doesn't exist
+// 	check(err)
+// 	defer destFile.Close()
+
+// 	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
+// 	check(err)
+
+// 	err = destFile.Sync()
+// 	check(err)
+// }
 
 // Raises error if exists
 // Derived from https://stackoverflow.com/a/35353594
