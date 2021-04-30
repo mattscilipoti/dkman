@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/TwinProduction/go-color"
 	"github.com/manifoldco/promptui"
 	"io"
 	"os"
@@ -74,7 +75,7 @@ func displayMenu() {
 	case 0: // Generate prompt
 		generate_files_for_shell_prompt()
 	case 1:
-		displayMessage("Hello World")
+		displayMessage("Hello" + color.Ize(color.Green, " World"))
 	case 2: //quit
 		os.Exit(0)
 	}
@@ -97,10 +98,10 @@ func generate_files_for_shell_prompt() {
 	}
 
 	displayMessages(
-		"Done.",
-		"Action required: Add: 'source $HOME/_shell_prompt.sh' to your .bashrc file.",
-		"Action required: Restart `bin/shell` to utilize the new prompt.",
-		"Troubleshoot: ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`",
+		color.Ize(color.Green, "Done."),
+		color.Ize(color.Yellow, "Action required:")+"Add: 'source $HOME/_shell_prompt.sh' to your .bashrc file.",
+		color.Ize(color.Yellow, "Action required:")+"Restart `bin/shell` to utilize the new prompt.",
+		color.Ize(color.Cyan, "Troubleshoot:")+"Ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`",
 	)
 }
 
