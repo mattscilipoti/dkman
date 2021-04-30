@@ -102,7 +102,6 @@ func generate_files_for_shell_prompt() {
 		"Action required: Restart `bin/shell` to utilize the new prompt.",
 		"Troubleshoot: ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`",
 	)
-	displayMenu()
 }
 
 // Copy source file to Destination
