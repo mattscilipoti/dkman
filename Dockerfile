@@ -9,16 +9,22 @@ RUN apk add --no-cache --update --virtual shell-dependencies \
   git \
   vim
 
+# Copy/rename shell startup file
+COPY docker/home/profile /root/.bashrc
+COPY docker/home/*.sh /root/
 CMD /bin/bash
 
 FROM base AS prep-build
 WORKDIR /go/src
 ENV CGO_ENABLED=0
+
 COPY go.* .
+RUN go mod tidy
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
 FROM prep-build AS build
+
 ARG TARGETOS
 ARG TARGETARCH
 RUN --mount=target=. \

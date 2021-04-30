@@ -82,7 +82,45 @@ func displayMenu() {
 }
 
 func generate_files_for_shell_prompt() {
-	fmt.Println("Copying files...")
+	templateDir := "templates/home"
+	currentDir, err := os.Getwd()
+	check(err)
+	destinationDir := filepath.Join(currentDir, "docker", "home")
+	displayMessage("Generating files in '" + destinationDir + "...")
+	// mkdir, including missing dirs along path
+	os.RemoveAll(destinationDir)
+	os.MkdirAll(destinationDir, os.ModePerm)
+
+	promptFiles := []string{"profile", "_shell_prompt.sh", "_shell_colors.sh", "git-prompt.sh"}
+	for _, sourceFile := range promptFiles {
+		copyFile(filepath.Join(templateDir, sourceFile), filepath.Join(destinationDir, sourceFile))
+	}
+
+	displayMessages(
+		"Done.",
+		"Action required: Add: 'source $HOME/_shell_prompt.sh' to your .bashrc file.",
+		"Action required: Restart `bin/shell` to utilize the new prompt.",
+		"Troubleshoot: ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`",
+	)
+	displayMenu()
+}
+
+// Copy source file to Destination
+// Derived from https://stackoverflow.com/a/35353594
+func copyFile(sourceFileNameAndPath string, DestinationFileNameAndPath string) {
+	srcFile, err := os.Open(sourceFileNameAndPath)
+	check(err)
+	defer srcFile.Close()
+
+	destFile, err := os.Create(DestinationFileNameAndPath) // creates if file doesn't exist
+	check(err)
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
+	check(err)
+
+	err = destFile.Sync()
+	check(err)
 }
 
 // Raises error if exists
