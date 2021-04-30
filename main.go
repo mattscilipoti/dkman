@@ -16,10 +16,46 @@ func main() {
 	}
 }
 
+type messageItem struct {
+	message string
+	purpose MessagePurpose
+}
+
+type MessagePurpose int
+
+const (
+	None MessagePurpose = iota
+	Info
+	Warning
+	Error
+	Success
+	ActionRequired
+	TroubleshootingTip
+)
+
+func messagePrefix(purpose MessagePurpose) string {
+	switch purpose {
+	case 0:
+		return ""
+	case 1:
+		return color.Ize(color.White, "Info: ")
+	case 2:
+		return color.Ize(color.Yellow, "Warning: ")
+	case 3:
+		return color.Ize(color.Red, "Error: ")
+	case 4:
+		return color.Ize(color.Green, "✓ ")
+	case 5:
+		return color.Ize(color.Yellow, "Action required: ")
+	case 6:
+		return color.Ize(color.Cyan, "Troubleshooting Tip: ")
+	}
+	panic(fmt.Sprintf("Unsupported purpose (%v)", purpose))
+}
+
 type menuItem struct {
 	caption     string
 	description string
-	action      func()
 }
 
 var menuItems = []menuItem{
@@ -40,17 +76,18 @@ var menuItems = []menuItem{
 	},
 }
 
-func displayMessage(message string) {
-	fmt.Println(message)
+func displayMessage(message messageItem) {
+	fmt.Println(messagePrefix(message.purpose) + message.message)
 }
 
-func displayMessages(messages ...string) {
+func displayMessages(messages ...messageItem) {
 	for _, message := range messages {
 		displayMessage(message)
 	}
 }
 
 func displayMenu() {
+	fmt.Println("")
 	collect_captions := func(menuItems []menuItem) []string {
 		var captions []string
 		for _, menuItem := range menuItems {
@@ -75,7 +112,9 @@ func displayMenu() {
 	case 0: // Generate prompt
 		generate_files_for_shell_prompt()
 	case 1:
-		displayMessage("Hello" + color.Ize(color.Green, " World"))
+		displayMessage(messageItem{
+			message: "Hello" + color.Ize(color.Green, " World"),
+		})
 	case 2: //quit
 		os.Exit(0)
 	}
@@ -87,7 +126,7 @@ func generate_files_for_shell_prompt() {
 	currentDir, err := os.Getwd()
 	check(err)
 	destinationDir := filepath.Join(currentDir, "docker", "home")
-	displayMessage("Generating files in '" + destinationDir + "...")
+	displayMessage(messageItem{ message: "Generating files in '" + destinationDir + "..." })
 	// mkdir, including missing dirs along path
 	os.RemoveAll(destinationDir)
 	os.MkdirAll(destinationDir, os.ModePerm)
@@ -98,10 +137,10 @@ func generate_files_for_shell_prompt() {
 	}
 
 	displayMessages(
-		color.Ize(color.Green, "Done."),
-		color.Ize(color.Yellow, "Action required:")+"Add: 'source $HOME/_shell_prompt.sh' to your .bashrc file.",
-		color.Ize(color.Yellow, "Action required:")+"Restart `bin/shell` to utilize the new prompt.",
-		color.Ize(color.Cyan, "Troubleshoot:")+"Ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`",
+		messageItem{purpose: Success, message: "Done."},
+		messageItem{purpose: ActionRequired, message: "Add: 'source $HOME/_shell_prompt.sh' to your .bashrc file."},
+		messageItem{purpose: ActionRequired, message: "Restart `bin/shell` to utilize the new prompt."},
+		messageItem{purpose: TroubleshootingTip, message: "Ensure your Dockerfile copies the files: 'COPY docker/home/*.sh /root/`"},
 	)
 }
 
