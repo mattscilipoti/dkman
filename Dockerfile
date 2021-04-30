@@ -3,6 +3,12 @@ FROM --platform=${BUILDPLATFORM} golang:1.16-alpine AS base
 FROM base AS dev
 # docker-compose creates shared volume at /go/src
 WORKDIR /go/src
+
+RUN apk add --no-cache --update --virtual shell-dependencies \
+  bash \
+  git \
+  vim
+
 CMD /bin/bash
 
 FROM base AS prep-build
