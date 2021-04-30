@@ -65,6 +65,11 @@ type menuItem struct {
 
 var menuItems = []menuItem{
 	menuItem{
+		caption:     "Generate all docker files",
+		description: "This will generate all the files that are copied into OPO docker projects, in docker/",
+		// action:      generate_files_for_shell_prompt,
+	},
+	menuItem{
 		caption:     "Generate default prompt files",
 		description: "This will generate the files that create the default prompt for OPO docker projects, in docker/",
 		// action:      generate_files_for_shell_prompt,
@@ -115,15 +120,35 @@ func displayMenu() {
 	// fmt.Printf("You choose %q\n", result)
 	switch i {
 	case 0: // Generate prompt
-		generate_files_for_shell_prompt()
+		generate_files_for_docker()
 	case 1:
+		generate_files_for_shell_prompt()
+	case 2:
 		displayMessage(messageItem{
 			message: "Hello" + color.Ize(color.Green, " World"),
 		})
-	case 2: //quit
+	case 3:
 		os.Exit(0)
 	}
 	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+}
+
+func generate_files_for_docker() {
+	templateDir := "templates/"
+	currentDir, err := os.Getwd()
+	check(err)
+	destinationDir := filepath.Join(currentDir, "docker")
+	displayMessage(messageItem{message: "Generating files in '" + destinationDir + "..."})
+	// mkdir, including missing dirs along path
+	os.RemoveAll(destinationDir)
+	os.MkdirAll(destinationDir, os.ModePerm)
+
+	dockerFiles := []string{"readme.md", "/home/profile", "/home/_shell_colors.sh"}
+	for _, sourceFile := range dockerFiles {
+		copyEmbeddedFile(filepath.Join(templateDir, sourceFile), filepath.Join(destinationDir, sourceFile))
+	}
+
+	generate_files_for_shell_prompt()
 }
 
 func generate_files_for_shell_prompt() {
@@ -133,10 +158,10 @@ func generate_files_for_shell_prompt() {
 	destinationDir := filepath.Join(currentDir, "docker", "home")
 	displayMessage(messageItem{message: "Generating files in '" + destinationDir + "..."})
 	// mkdir, including missing dirs along path
-	os.RemoveAll(destinationDir)
+	// os.RemoveAll(destinationDir)
 	os.MkdirAll(destinationDir, os.ModePerm)
 
-	promptFiles := []string{"profile", "_shell_prompt.sh", "_shell_colors.sh", "git-prompt.sh"}
+	promptFiles := []string{"_shell_prompt.sh", "_shell_colors.sh", "git-prompt.sh"}
 	for _, sourceFile := range promptFiles {
 		copyEmbeddedFile(filepath.Join(templateDir, sourceFile), filepath.Join(destinationDir, sourceFile))
 	}
@@ -152,6 +177,7 @@ func generate_files_for_shell_prompt() {
 // Copies contents of "embedded file" to OS file
 // derived from: https://golang.org/pkg/embed/
 func copyEmbeddedFile(embeddedFileName string, destinationFileNameAndPath string) {
+	displayMessage(messageItem{message: "Copying '" + embeddedFileName + "..."})
 	embeddedFileContentsAsBase64, err := templateFiles.ReadFile(embeddedFileName)
 	check(err)
 	embeddedFileContents := string(embeddedFileContentsAsBase64)
@@ -159,8 +185,12 @@ func copyEmbeddedFile(embeddedFileName string, destinationFileNameAndPath string
 	check(err)
 }
 
+// Creates destination file from contents, overwritting existing files	
 // Returns count_of_bytes_written, err
 func createFile(contents string, destinationFileNameAndPath string) (int, error) {
+	destinationDir := filepath.Dir(destinationFileNameAndPath)
+	os.MkdirAll(destinationDir, os.ModePerm)
+	displayMessage(messageItem{message: "Creating '" + destinationFileNameAndPath + "..."})
 	destFile, err := os.Create(destinationFileNameAndPath) // creates if file doesn't exist
 	check(err)
 	defer destFile.Close()
