@@ -7,4 +7,4 @@ services:
           target: dev
         command: /bin/bash # starts shell, overriding default CMD
         volumes:
-            - .:/go/src # working dir, shared with host. This *must* match WORKDIR from Dockerfile
+            - .:/usr/local/go/src/dkman # working dir, shared with host. This *must* match WORKDIR from Dockerfile

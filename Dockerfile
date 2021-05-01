@@ -2,7 +2,7 @@ FROM --platform=${BUILDPLATFORM} golang:1.16-alpine AS base
 
 FROM base AS dev
 # docker-compose creates shared volume at /go/src
-WORKDIR /go/src
+WORKDIR /usr/local/go/src/dkman
 
 RUN apk add --no-cache --update --virtual shell-dependencies \
   bash \
@@ -15,7 +15,7 @@ COPY docker/home/*.sh /root/
 CMD /bin/bash
 
 FROM base AS prep-build
-WORKDIR /go/src
+WORKDIR /usr/local/go/src/dkman
 ENV CGO_ENABLED=0
 
 COPY go.* .
